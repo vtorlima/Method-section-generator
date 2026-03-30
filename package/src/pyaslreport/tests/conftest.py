@@ -1,3 +1,7 @@
+"""
+Shared pytest configuration, fixtures, and markers for the pyaslreport test suite.
+"""
+
 import json
 import pytest
 import nibabel as nib
@@ -5,9 +9,13 @@ import numpy as np
 from pathlib import Path
 
 
-# --- CLI option for external examples directory ---
-
 def pytest_addoption(parser):
+    """
+    Register the custom CLI option for the examples directory.
+
+    Args:
+        parser: Pytest parser object.
+    """
     parser.addoption(
         "--examples-dir",
         action="store",
@@ -16,40 +24,59 @@ def pytest_addoption(parser):
     )
 
 
-# --- Pytest markers ---
-
 def pytest_configure(config):
+    """
+    Register custom pytest markers.
+
+    Args:
+        config: Pytest configuration object.
+    """
     config.addinivalue_line(
         "markers",
         "integration: marks tests as integration tests (run with -m integration)"
     )
 
 
-# --- NIfTI generator fixture ---
-
 @pytest.fixture
 def minimal_nifti_path(tmp_path):
     """
-    Generates a minimal valid NIfTI file at tmp_path/asl.nii.
-    shape=(64, 64, 20) — nifti_slice_number in output will be 20.
+    Create a minimal valid NIfTI file for tests.
+
+    Args:
+        tmp_path: Temporary path provided by pytest.
+
+    Returns:
+        String path to the generated NIfTI file.
     """
     path = tmp_path / "asl.nii"
+
+    # Create a 64x64x20 NIfTI image with zero values
     img = nib.Nifti1Image(np.zeros((64, 64, 20)), affine=np.eye(4))
     nib.save(img, str(path))
+
     return str(path)
 
-
-# --- Minimal ProcessingContext factory ---
 
 @pytest.fixture
 def make_context():
     """
-    Returns a factory function that creates a ProcessingContext with sensible defaults.
-    Override any field by passing keyword arguments.
+    Create a factory for ProcessingContext instances.
+
+    Returns:
+        Factory function that creates ProcessingContext objects with optional overrides.
     """
     from pyaslreport.modalities.asl.processor import ProcessingContext
 
     def _make(**kwargs):
+        """
+        Build a ProcessingContext object.
+
+        Args:
+            **kwargs: Values to override default context fields.
+
+        Returns:
+            ProcessingContext instance.
+        """
         defaults = dict(
             asl_json_data=[],
             m0_prep_times_collection=[],
@@ -68,17 +95,26 @@ def make_context():
     return _make
 
 
-# --- Minimal ASLProcessor factory ---
-
 @pytest.fixture
 def make_processor():
     """
-    Returns a factory function that creates an ASLProcessor with minimal data.
-    Safe to call internal methods on.
+    Create a factory for ASLProcessor instances.
+
+    Returns:
+        Factory function that creates ASLProcessor objects with optional data overrides.
     """
     from pyaslreport.modalities.asl.processor import ASLProcessor
 
     def _make(**data_overrides):
+        """
+        Build an ASLProcessor object.
+
+        Args:
+            **data_overrides: Values to override default processor data.
+
+        Returns:
+            ASLProcessor instance.
+        """
         data = {"files": [], "nifti_file": None, "dcm_files": []}
         data.update(data_overrides)
         return ASLProcessor(data)
@@ -86,15 +122,20 @@ def make_processor():
     return _make
 
 
-# --- Examples directory fixture for integration tests ---
-
 @pytest.fixture
 def examples_dir(request):
     """
-    Returns the path to the examples directory.
-    Uses --examples-dir CLI option if provided, otherwise the committed examples.
+    Resolve the examples directory for integration tests.
+
+    Args:
+        request: Pytest request object.
+
+    Returns:
+        Path to the examples directory.
     """
     custom = request.config.getoption("--examples-dir")
+
     if custom:
         return Path(custom)
+
     return Path(__file__).parent / "examples"
