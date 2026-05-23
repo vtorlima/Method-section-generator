@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from .main import get_bids_metadata
+from pyaslreport.main import get_bids_metadata
 
 # filepath: /home/ibrahim/MyPc/Projects/GSoC/ASL-Parameter-Generator/package/src/pyaslreport/test_main.py
 
