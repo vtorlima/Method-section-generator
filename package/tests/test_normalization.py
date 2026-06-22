@@ -47,11 +47,7 @@ def test_rename_fields_numrfblocks_derives_labeling_duration(
 def test_rename_fields_numrfblocks_retains_source(
     make_processor: Callable[..., ASLProcessor],
 ) -> None:
-    """CURRENT behavior: NumRFBlocks is NOT deleted after deriving LabelingDuration.
-
-    Retention vs removal is an open contract question with mentors (provenance).
-    If they decide to remove it, change this to `assert "NumRFBlocks" not in session`.
-    """
+    """NumRFBlocks is retained after deriving LabelingDuration for provenance."""
     proc = make_processor()
     session = {"NumRFBlocks": 100}
     proc._rename_fields(session)
