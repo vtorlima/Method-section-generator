@@ -48,7 +48,7 @@ class ASLUtils:
                         f"Discrepancy in '{param}' for ASL file '{asl_filename}' and M0 file '{m0_filename}': "
                         f"ASL value = {asl_value}, M0 value = {m0_value}")
             elif validation_type == "floatOrArray":
-                if isinstance(asl_value, float) and isinstance(m0_value, float):
+                if isinstance(asl_value, (int, float)) and isinstance(m0_value, (int, float)):
                     difference = abs(asl_value - m0_value)
                     difference_formatted = f"{difference:.2f}"
                     if difference > error_variation:
