@@ -137,9 +137,10 @@ class TestNumberOrNumberArrayValidator:
         assert fired_error(v.validate([1, -1, 2]))
         assert all_clear(v.validate([1, 2, 3]))
 
-    def test_wrong_type_reports_in_major_slot(self) -> None:
-        """Type mismatch lands in slot 0; pins current (arguably odd) behavior."""
-        assert NumberOrNumberArrayValidator().validate("x")[MAJOR_SLOT] is not None
+    def test_wrong_type_is_reported_as_major_error(self) -> None:
+        """A non-numeric, non-list value is reported as a major error by design."""
+        r = NumberOrNumberArrayValidator().validate("x")
+        assert fired_major(r) and not fired_error(r)
 
 
 class TestConsistencyValidator:
