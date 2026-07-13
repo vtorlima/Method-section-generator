@@ -40,6 +40,12 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default=None,
         help="Path to integration examples dir; falls back to the committed CI set.",
     )
+    parser.addoption(
+        "--update-expected",
+        action="store_true",
+        default=False,
+        help="Regenerate each example's expected_output.json from current tool output.",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -196,3 +202,29 @@ def minimal_asl_json() -> dict[str, Any]:
         "ManufacturersModelName": "TrioTim",
         "AcquisitionVoxelSize": [3, 3, 4],
     }
+
+
+# ---------------------------------------------------------------------------
+# Integration example discovery (parametrizes test_integration over cases)
+# ---------------------------------------------------------------------------
+def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
+    """Parametrize integration tests over discovered example case folders.
+
+    Reads --examples-dir (registered above): when absent, falls back to the
+    committed set at tests/integration/examples. An empty or missing dir yields
+    zero cases, which pytest reports as a single skip rather than an error.
+
+    Args:
+        metafunc: The pytest metafunc for the test being collected.
+    """
+    if "integration_case" in metafunc.fixturenames:
+        from tests.integration.runner import discover_examples
+
+        cli = metafunc.config.getoption("--examples-dir")
+        base = (
+            Path(cli).expanduser().resolve()
+            if cli
+            else Path(__file__).parent / "integration" / "examples"
+        )
+        cases = discover_examples(base)
+        metafunc.parametrize("integration_case", cases, ids=[p.name for p in cases])
